@@ -31,7 +31,12 @@ module RailsAdmin
               
               sanitize_params_for! :update
               
-              @object.set_attributes(params[@abstract_model.param_key], _attr_accessible_role)
+              update_params = if @object.class.ancestors.map(&:to_s).include?('ActiveModel::ForbiddenAttributesProtection')
+                params[@abstract_model.param_key].permit!
+              else
+                params[@abstract_model.param_key]
+              end
+              @object.set_attributes(update_params, _attr_accessible_role)
               @authorization_adapter && @authorization_adapter.attributes_for(:update, @abstract_model).each do |name, value|
                 @object.send("#{name}=", value)
               end
